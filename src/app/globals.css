@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
+@theme {
+  --color-cyber-blue: #00f0ff;
+  --color-cyber-purple: #bd00ff;
+  --color-cyber-pink: #ff0055;
+  --color-dark-surface: rgba(10, 10, 15, 0.6);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-surface: rgba(20, 20, 30, 0.4);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #050508;
+  --foreground: #e0e0e0;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  overflow: hidden; /* Prevent scrolling on OS level */
+  margin: 0;
+  padding: 0;
+}
+
+/* Glassmorphism utility classes to use across the OS */
+@utility glass {
+  background: var(--color-glass-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@utility glass-panel {
+  background: var(--color-glass-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Holographic text effect */
+@utility text-holo {
+  color: #fff;
+  text-shadow: 0 0 5px var(--color-cyber-blue), 0 0 12px var(--color-cyber-blue);
+}
+
+/* Modern thin violet-tinted custom scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 99px;
+  transition: background 0.2s ease;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-cyber-blue);
 }
