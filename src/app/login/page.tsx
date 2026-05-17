@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -13,16 +13,53 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // OS Boot Loading Transition states
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState("Initializing user profile...");
+
+  const statusMessages = [
+    { threshold: 0, text: "Authenticating security credentials..." },
+    { threshold: 25, text: "Loading user environment configurations..." },
+    { threshold: 55, text: "Syncing workspace database tables..." },
+    { threshold: 80, text: "Launching desktop UI graphics shell..." },
+    { threshold: 100, text: "Welcome to TyrexOS." }
+  ];
+
+  const startBootLoading = () => {
+    setShowLoadingScreen(true);
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      const increment = Math.floor(Math.random() * 8) + 5;
+      currentProgress = Math.min(currentProgress + increment, 100);
+      setProgress(currentProgress);
+
+      const matchedStatus = statusMessages
+        .slice()
+        .reverse()
+        .find((m) => currentProgress >= m.threshold);
+      if (matchedStatus) {
+        setStatus(matchedStatus.text);
+      }
+
+      if (currentProgress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          router.push("/os");
+        }, 500);
+      }
+    }, 110);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/os");
+      startBootLoading();
     } catch (err: any) {
       setError(err.message || "Failed to login");
-    } finally {
       setLoading(false);
     }
   };
@@ -33,10 +70,9 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      router.push("/os");
+      startBootLoading();
     } catch (err: any) {
       setError(err.message || "Failed Google login");
-    } finally {
       setLoading(false);
     }
   };
@@ -46,17 +82,69 @@ export default function LoginPage() {
     setError("");
     try {
       await signInAnonymously(auth);
-      router.push("/os");
+      startBootLoading();
     } catch (err: any) {
       setError("Anonymous auth not enabled in Firebase. Creating simulated local session...");
-      // Soft bypass fallback if anonymous auth is not enabled in Firebase Console yet
       setTimeout(() => {
-        router.push("/os");
+        startBootLoading();
       }, 1000);
-    } finally {
-      setLoading(false);
     }
   };
+
+  // Render Graphical Boot Loading Screen if triggered on successful authentication
+  if (showLoadingScreen) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-black relative select-none">
+        {/* Background radial gradient overlay for premium depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(124,93,250,0.08)_0%,transparent_70%)] pointer-events-none"></div>
+
+        <div className="flex flex-col items-center gap-10 z-10 animate-fade-in">
+          {/* Sleek Glowing Modern Tyrex "T" Vector Shield Logo */}
+          <div className="relative group">
+            {/* Breathing ambient back-glow */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-[var(--color-cyber-blue)] to-[var(--color-cyber-pink)] rounded-full opacity-30 blur-2xl group-hover:opacity-40 transition-opacity duration-1000 animate-pulse"></div>
+            
+            <svg
+              className="w-24 h-24 text-[var(--color-cyber-blue)] drop-shadow-[0_0_15px_rgba(124,93,250,0.6)] relative z-10"
+              viewBox="0 0 100 100"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 15H85V32H59V85H41V32H15V15Z"
+                fill="currentColor"
+                className="animate-pulse"
+                style={{ animationDuration: "3s" }}
+              />
+            </svg>
+          </div>
+
+          {/* Operating System Name */}
+          <div className="flex flex-col items-center gap-1.5 text-center mt-2">
+            <h1 className="text-white text-2xl font-semibold tracking-[0.35em] uppercase font-sans drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)] pl-[0.35em]">
+              TyrexOS
+            </h1>
+            <span className="text-[var(--color-app-text-secondary)] text-[10px] tracking-[0.4em] uppercase font-medium pl-[0.4em] opacity-80">
+              Powered by AI Core
+            </span>
+          </div>
+
+          {/* Apple/Windows Style Smooth loading container */}
+          <div className="flex flex-col items-center gap-3.5 mt-4">
+            <div className="h-1 w-52 bg-white/10 rounded-full overflow-hidden relative shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
+              <div
+                className="h-full bg-white rounded-full transition-all duration-300 ease-out shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <span className="text-[10px] font-mono tracking-[0.25em] text-[var(--color-app-text-secondary)] uppercase opacity-70 animate-pulse pl-[0.25em]">
+              {status}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-black bg-[url('/grid.svg')] bg-center relative overflow-hidden">
@@ -153,4 +241,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
